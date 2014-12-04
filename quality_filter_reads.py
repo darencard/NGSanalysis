@@ -74,7 +74,7 @@ parser.add_option("--sliding_window", action = "store_true", dest = "slid_wind",
 parser.add_option("--sliding_width", action = "store", type = "string", dest = "win_width", help = "sliding window width (bp) [4]", default = "4")
 parser.add_option("--sliding_score", action = "store", type = "string", dest = "win_score", help = "average quality per base score threshold for sliding window [15]", default = "15")
 parser.add_option("--maxinfo", action = "store_true", dest = "maxinfo", help = "use maxinfo algorithm for quality trimming instead of a sliding window approach [false]", default = False)
-parser.add_option("--maxinfo_length", action = "store", type = "string", dest = "maxinfo_length", help = "maxinfo target length (bp) parameter for maxinfo algorithm [75], default = "75")
+parser.add_option("--maxinfo_length", action = "store", type = "string", dest = "maxinfo_length", help = "maxinfo target length (bp) parameter for maxinfo algorithm [75]", default = "75")
 parser.add_option("--maxinfo_strictness", action = "store", type = "string", dest = "maxinfo_strict", help = "maxinfo strictness parameter for maxinfo algorithm [0.8]", default = "0.8")
 parser.add_option("--drop", action = "store", type = "string", dest = "drop", help = "drop reads below a certain length [36]", default = "36")
 parser.add_option("--phred", action = "store", type = "string", dest = "phred", help = "PHRED encoding for output read quality scores [33]", default = "33")
@@ -102,7 +102,7 @@ def SE_filter(name, adapters, tail, head, algorithm):
 	foo = name.split(".")                                                                                    # split by '.'
 	print "\n***Quality filtering single-end reads from "+foo[0]+"***\n"
 	input = foo[0]+".SE."+options.ext                                                               # input SE file for filtering
-	SEclean = "trimmomatic-0.32.jar SE -threads "+options.threads+" -trimlog ./filtered/"+foo[0]+".qtrim.log ./raw/"+input+" ./filtered/"+foo[0]+".S1.qtrim "+head+" "+tail+" "+adapters+" LEADING:"+options.leading+" TRAILING:"+options.trailing+ "+algorithm+" MINLEN:"+options.drop+" TOPHRED"+options.phred	
+	SEclean = "trimmomatic-0.32.jar SE -threads "+options.threads+" -trimlog ./filtered/"+foo[0]+".qtrim.log ./raw/"+input+" ./filtered/"+foo[0]+".S1.qtrim "+head+tail+adapters+"LEADING:"+options.leading+" TRAILING:"+options.trailing+" "+algorithm+"MINLEN:"+options.drop+" TOPHRED"+options.phred	
 	print SEclean
 	os.system(str(SEclean))
 
@@ -120,7 +120,7 @@ def PE_filter(name, adapters, tail, head, algorithm):
         print "\n***Quality filtering single-end reads from "+foo[0]+"***\n"
         forward = foo[0]+".P1."+options.ext                                                               # input forward PE file for filtering
 	reverse = foo[0]+".P2."+options.ext								  # input reverse PE file for filtering
-        PEclean = "trimmomatic-0.32.jar SE -threads "+options.threads+" -trimlog ./filtered/"+foo[0]+".qtrim.log ./raw/"+forward+" ./raw/"+reverse+" ./filtered/"+foo[0]+".P1.qtrim ./filtered/"+foo[0]+".S1.qtrim ./filtered/"+foo[0]+".P2.qtrim ./filtered/"+foo[0]+".S2.qtrim "+head+" "+tail+" "+adapters+" LEADING:"+options.leading+" TRAILING:"+options.trailing+ "+algorithm+" MINLEN:"+options.drop+" TOPHRED"+options.phred
+        PEclean = "trimmomatic-0.32.jar PE -threads "+options.threads+" -trimlog ./filtered/"+foo[0]+".qtrim.log ./raw/"+forward+" ./raw/"+reverse+" ./filtered/"+foo[0]+".P1.qtrim ./filtered/"+foo[0]+".S1.qtrim ./filtered/"+foo[0]+".P2.qtrim ./filtered/"+foo[0]+".S2.qtrim "+head+tail+adapters+"LEADING:"+options.leading+" TRAILING:"+options.trailing+" "+algorithm+"MINLEN:"+options.drop+" TOPHRED"+options.phred
         print PEclean
         os.system(str(PEclean))
 
@@ -151,21 +151,22 @@ def main():
 			print "\n***No adapter sequences specified for adapter trimming!***\n"
 			adapters = ""
 		else:
-			adapters = "ILLUMINACLIP:"+options.adapters+":"+options.adapt_mis+":"+options.adapt_palin+":"+options.adapt_simple+":"+options.adapt_length
+			adapters = "ILLUMINACLIP:"+options.adapters+":"+options.adapt_mis+":"+options.adapt_palin+":"+options.adapt_simple+":"+options.adapt_length+" "
 		if options.tailcrop is None:
 			print "\n***The end of the read will not be trimmed!***\n"
 			tail = ""
 		else:
-			tail = "CROP:"+options.tailcrop
+			tail = "CROP:"+options.tailcrop+" "
 		if options.headcrop is None:
 			print "\n***The beginning of the read will not be trimmed!***\n"
 			head = ""
 		else:
-			head = "HEADCROP:"+options.headcrop
-		if options.sliding_window == True:
-			algorithm = "SLIDINGWINDOW:"+options.win_width+":"+options.win_score
-		elif options.maxinfo == True:
-			algorithm = "MAXINFO:+options.maxinfo_length+":"+options.maxinfo_strict
+			head = "HEADCROP:"+options.headcrop+" "
+		if options.maxinfo == True:
+			options.slid_wind == False
+			algorithm = "MAXINFO:"+options.maxinfo_length+":"+options.maxinfo_strict+" "
+		elif options.slid_wind == True:
+			algorithm = "SLIDINGWINDOW:"+options.win_width+":"+options.win_score+" "
 		else:
 			print "\n***Error: specify either sliding window or maxinfo trimming with parameters!***\n"
                 for name in names.keys():                                                                       # For each unique file name in dictionary
