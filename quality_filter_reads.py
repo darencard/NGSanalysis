@@ -25,9 +25,7 @@ as follows:
 1. The file extension (normally fastq) must match that passed to the command with the '-e' flag.
 2. Prior to the extension, there must be an indication of the read type (single or paired) as follows:
         a. P1 and P2 for paired reads, with P1 designated for the single-end reads and P2 designated for the paired-end reads
-        b. S1 and S2 for paired reads in which the pairs were broken during quality trimming, with S1 designated
-        for the single-end broken reads and S2 designated for the paired-end broken reads.
-        c. S1 for non-paired, single-end reads
+        b. S1 for non-paired, single-end reads
 3. A file root with the name of the sample
 Example: ID1234_Loc1_ACTTAG-GTACAG.P1.fastq = single-end reads of paired reads of sample ID1234_Loc1_ACTTAG-GTACAG
 Note: Reads that do not have this file name formatting will probably not be run correctly.
@@ -35,8 +33,18 @@ Note: Reads that do not have this file name formatting will probably not be run 
 The user can also specify the number of threads to use and various parameters and settings to be \
 used by Trimmomatic for read quality filtering. User must select whether quality trimming will be done \
 using the default sliding window approach ("--sliding_window") or using a maxinfo algorithm ("--maxinfo"). \ 
-Default values for all parameters should be sufficient for most applications. See the user manual at \
-http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf \
+Default values for all parameters should be sufficient for most applications. 
+
+Trimming steps take place in the following order (assuming all options are used):
+1. Bases are removed from the start of the reads (--head_crop)
+2. Bases are removed from the end of the reads (--tail_crop)
+3. Adapters are trimmed based on input fasta and parameters (--adapters)
+4. Bases below the designated quality score are removed from the start of the reads (--leading)
+5. Bases below the designated quality score are removed from the end of the reads (--trailing)
+6. Reads are quality trimmed using either a sliding window (--sliding_window) or maxinfo (--maxinfo) approach
+7. Reads below a designed length are removed (--drop)
+
+See the user manual at http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf \
 for more information and guidance.
 
 The only dependency for this script is Trimmomatic v. 0.32, which must be installed in the users path.
@@ -60,8 +68,8 @@ parser.add_option("-p", action="store_true", dest = "paired", help = "paired rea
 parser.add_option("-s", action="store_true", dest = "single", help = "single-end reads flag")
 parser.add_option("-d", action="store", type = "string", dest = "directory", help = "directory containing read files")
 parser.add_option("-e", action="store", type = "string", dest = "ext", help = "the file extension of the read files")
-parser.add_option("--tail_crop", action = "store", type = "string", dest = "tailcrop", help = "crop read to designated length from end of reads [off]")
-parser.add_option("--head_crop", action = "store", type = "string", dest = "headcrop", help = "crop read to designated length from beginning of reads [off]")
+parser.add_option("--tail_crop", action = "store", type = "string", dest = "tailcrop", help = "crop read to designated length by trimming from end of reads [off]")
+parser.add_option("--head_crop", action = "store", type = "string", dest = "headcrop", help = "crop designated number of bases from beginning of reads [off]")
 parser.add_option("--adapters", action = "store", type = "string", dest = "adapters", help = "fasta file with adapters to be trimmed [none]")
 parser.add_option("--adapters_mismatch", action = "store", type = "string", dest = "adapt_mis", help = "mismatches allowed in adapter searching seed [2]", default = "2")
 parser.add_option("--adapters_palindrome", action = "store", type = "string", dest = "adapt_palin", help = "threshold for match between two adapter ligated reads for PE palinrome read alignment [30]", default = "30")
