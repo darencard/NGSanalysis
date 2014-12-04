@@ -2,11 +2,8 @@
 
 ##print __name__
 
-import re
-import sys
 import os
 import optparse
-import subprocess
 
 usage_line = """
 quality_filter_reads.py
